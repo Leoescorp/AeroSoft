@@ -8,7 +8,7 @@ use App\Models\administradores;
 use App\Models\generos;
 use Illuminate\Http\Request;
 
-class AdminControl extends Controller
+class AdminController extends Controller
 {
 
     public function Index() {

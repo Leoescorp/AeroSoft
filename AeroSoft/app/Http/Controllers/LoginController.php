@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class LoginControl extends Controller
+class LoginController extends Controller
 {
     public function MostrarLogin() {
         if (Auth::check()) {
