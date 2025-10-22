@@ -5,7 +5,7 @@ use App\Http\Controllers\LoginControl;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('Practica.Index');
+    return view('home');
 });
 
 Route::get('/Login', [LoginControl::class, 'MostrarLogin'])
@@ -17,6 +17,9 @@ Route::post('/Login/Login', [LoginControl::class, 'Login'])->name('loguear');
 Route::post('/Logout', [LoginControl::class, 'Logout'])
     ->name('logout')
     ->middleware('Prevenir');
+Route::get('/tickets', function () {
+    return view('tickets');
+})->name('tickets');
 
 Route::middleware(['auth','Prevenir'])->group(function() {
     Route::middleware('rol:1')->get('/Admin/Index', [AdminControl::class, 'Index'])->name('admin_index');
