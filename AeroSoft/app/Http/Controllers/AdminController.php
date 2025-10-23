@@ -3,39 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Administrador;
 use App\Models\administradores;
 use App\Models\generos;
+use App\Models\documentos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-
     public function Index() {
         return view('Practica.Admin.Index');
     }
 
     public function ListaEditor(Request $Datos) {
         $Buscar = $Datos->input('Buscar');
-        $genero = $Datos->input('rol');
-
-        $user = administradores::with(['TD', 'Genero'])
+        $genero = $Datos->input('genero');
+        $user = administradores::with(['Genero', 'ROL'])
+            ->where('id_rol', 2)
             ->when($genero, function ($query) use ($genero) {
                 $query->where('id_genero', $genero);
             })
             ->when($Buscar, function ($query) use ($Buscar) {
                 $query->where(function ($sub) use ($Buscar) {
-                    $sub->where('Nombres', 'like', "%$Buscar%");
+                    $sub->where('Nombres', 'like', "%$Buscar%")
+                        ->orWhere('Primer_Apellido', 'like', "%$Buscar%")
+                        ->orWhere('N_Documento', 'like', "%$Buscar%");
                 });
             })
+            ->orderBy('id_administrador', 'desc')
             ->get();
-        return view('Practica.Admin.Lista', compact('user', 'genero'));
+        $generos = generos::all();
+        return view('Practica.Admin.Lista', compact('user', 'generos', 'genero', 'Buscar'));
     }
 
     public function Registrar() {
-        $genero = generos::all();
-        return view('Practica.Admin.Registrar', compact('genero'));
+        $generos = generos::all();
+        $documentos = documentos::all();
+        return view('Practica.Admin.Registrar', compact('generos', 'documentos'));
     }
 
     public function Registro(Request $Datos) {
@@ -43,17 +48,18 @@ class AdminController extends Controller
             'Nombres' => 'required|string|min:1|max:50',
             'Primer_Apellido' => 'required|string|min:1|max:50',
             'Segundo_Apellido' => 'required|string|min:1|max:50',
-            'Fecha_Nacimiento' => 'required|date|before_or_equal:' . now()->subYears(18)->format('Y-m-d'),'',
+            'Fecha_Nacimiento' => 'required|date|before_or_equal:' . now()->subYears(18)->format('Y-m-d'),
             'id_genero' => 'required|exists:generos,id_genero',
+            'id_td' => 'required|exists:documentos,id_td',
             'N_Documento' => 'required|min:8|max:10|unique:administradores,N_Documento',
-            'Celular' => 'required|digist:10|unique:adminstradores,Celular',
-            'Correo' => 'required|email|unique:usuario,Correo',
+            'Celular' => 'required|digits:10|unique:administradores,Celular',
+            'Correo' => 'required|email|unique:administradores,Correo',
             'Password' => [
                 'required',
                 'confirmed',
-                'regex:/^(?=.[0-9])(?=.[a-z])(?=.[A-Z])(?=.\W)(?!.* ).{8,16}$/'
+                'regex:/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/'
             ]
-        ],[
+        ], [
             'Nombres.required' => 'El campo nombres es obligatorio.',
             'Primer_Apellido.required' => 'El primer apellido es obligatorio.',
             'Segundo_Apellido.required' => 'El segundo apellido es obligatorio.',
@@ -62,6 +68,8 @@ class AdminController extends Controller
             'Fecha_Nacimiento.before_or_equal' => 'Debes tener al menos 18 años.',
             'id_genero.required' => 'El género es obligatorio.',
             'id_genero.exists' => 'El género seleccionado no es válido.',
+            'id_td.required' => 'El tipo de documento es obligatorio.',
+            'id_td.exists' => 'El tipo de documento seleccionado no es válido.',
             'N_Documento.required' => 'El número de documento es obligatorio.',
             'N_Documento.min' => 'El documento debe tener al menos 8 caracteres.',
             'N_Documento.max' => 'El documento no debe exceder los 10 caracteres.',
@@ -76,21 +84,29 @@ class AdminController extends Controller
             'Password.confirmed' => 'Las contraseñas no coinciden.',
             'Password.regex' => 'La contraseña debe tener entre 8 y 16 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.'
         ]);
-        $Admin = new administradores();
-        $Admin->Nombre = $Datos->Nombre;
-        $Admin->Apellido = $Datos->Apellido;
-        $Admin->ID_TD = $Datos->ID_TD;
-        $Admin->N_Documento = $Datos->N_Documento;
-        $Admin->Correo = $Datos->Correo;
-        $Admin->Password = bcrypt($Datos->Password);
-        $Admin->save();
-        return redirect('Mensaje/Index')->with('Mensaje', "Ya está registrado el nuevo editor.");
+        administradores::create([
+            'Nombres' => $Datos->Nombres,
+            'Primer_Apellido' => $Datos->Primer_Apellido,
+            'Segundo_Apellido' => $Datos->Segundo_Apellido,
+            'Fecha_Nacimiento' => $Datos->Fecha_Nacimiento,
+            'id_genero' => $Datos->id_genero,
+            'id_td' => $Datos->id_td,
+            'N_Documento' => $Datos->N_Documento,
+            'id_rol' => 2,
+            'Celular' => $Datos->Celular,
+            'Correo' => $Datos->Correo,
+            'Password' => Hash::make($Datos->Password),
+            'Activida' => 1
+        ]);
+        return redirect()->route('admin.lista')->with('Mensaje', 'Editor registrado correctamente.');
     }
 
     public function Editar($id) {
         $id = Crypt::decrypt($id);
-        $genero = generos::all();
-        return view('Practica.Admin.Editar', compact('genero'));
+        $editor = administradores::findOrFail($id);
+        $generos = generos::all();
+        $documentos = documentos::all();
+        return view('Practica.Admin.Editar', compact('editor', 'generos', 'documentos'));
     }
 
     public function Actualizar(Request $Datos) {
@@ -99,17 +115,18 @@ class AdminController extends Controller
             'Nombres' => 'required|string|min:1|max:50',
             'Primer_Apellido' => 'required|string|min:1|max:50',
             'Segundo_Apellido' => 'required|string|min:1|max:50',
-            'Fecha_Nacimiento' => 'required|date|before_or_equal:' . now()->subYears(18)->format('Y-m-d'),'',
+            'Fecha_Nacimiento' => 'required|date|before_or_equal:' . now()->subYears(18)->format('Y-m-d'),
             'id_genero' => 'required|exists:generos,id_genero',
-            'N_Documento' => 'required|min:8|max:10|unique:administradores,N_Documento,' . $id . ',id_administradores',
-            'Celular' => 'required|digist:10|unique:adminstradores,Celular,' . $id . ',id_administradores',
-            'Correo' => 'required|email|unique:usuario,Correo,' . $id . ',id_administradores',
+            'id_td' => 'required|exists:documentos,id_td',
+            'N_Documento' => 'required|min:8|max:10|unique:administradores,N_Documento,' . $id . ',id_administrador',
+            'Celular' => 'required|digits:10|unique:administradores,Celular,' . $id . ',id_administrador',
+            'Correo' => 'required|email|unique:administradores,Correo,' . $id . ',id_administrador',
             'Password' => [
-                'required',
+                'nullable',
                 'confirmed',
-                'regex:/^(?=.[0-9])(?=.[a-z])(?=.[A-Z])(?=.\W)(?!.* ).{8,16}$/'
+                'regex:/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/'
             ]
-        ],[
+        ], [
             'Nombres.required' => 'El campo nombres es obligatorio.',
             'Primer_Apellido.required' => 'El primer apellido es obligatorio.',
             'Segundo_Apellido.required' => 'El segundo apellido es obligatorio.',
@@ -118,6 +135,8 @@ class AdminController extends Controller
             'Fecha_Nacimiento.before_or_equal' => 'Debes tener al menos 18 años.',
             'id_genero.required' => 'El género es obligatorio.',
             'id_genero.exists' => 'El género seleccionado no es válido.',
+            'id_td.required' => 'El tipo de documento es obligatorio.',
+            'id_td.exists' => 'El tipo de documento seleccionado no es válido.',
             'N_Documento.required' => 'El número de documento es obligatorio.',
             'N_Documento.min' => 'El documento debe tener al menos 8 caracteres.',
             'N_Documento.max' => 'El documento no debe exceder los 10 caracteres.',
@@ -133,19 +152,30 @@ class AdminController extends Controller
             'Password.regex' => 'La contraseña debe tener entre 8 y 16 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.'
         ]);
         $Editor = administradores::findOrFail($id);
-        $Editor->Nombres = $Datos->Nombres;
-        $Editor->Primer_Apellido = $Datos->Primer_Apellido;
-        $Editor->Segundo_Apellido = $Datos->Segundo_Apellido;
-        $Editor->Fecha_Nacimiento = $Datos->Fecha_Nacimiento;
-        $Editor->id_genero = $Datos->id_genero;
-        $Editor->N_Documento = $Datos->N_Documento;
-        $Editor->Celular = $Datos->Celular;
-        $Editor->Correo = $Datos->Correo;
-        if ($Datos->isDirty()) {
-            $Editor->save();
-            return redirect()->with('Mensaje', 'El usuario fue editado');
+        $datosActualizar = [
+            'Nombres' => $Datos->Nombres,
+            'Primer_Apellido' => $Datos->Primer_Apellido,
+            'Segundo_Apellido' => $Datos->Segundo_Apellido,
+            'Fecha_Nacimiento' => $Datos->Fecha_Nacimiento,
+            'id_genero' => $Datos->id_genero,
+            'id_td' => $Datos->id_td,
+            'N_Documento' => $Datos->N_Documento,
+            'Celular' => $Datos->Celular,
+            'Correo' => $Datos->Correo,
+        ];
+        if ($Datos->filled('Password')) {
+            $datosActualizar['Password'] = Hash::make($Datos->Password);
         }
-        return back()->with('Mensaje', 'El usuario fue editado');
+        $Editor->update($datosActualizar);
+        return redirect()->route('admin.lista')->with('Mensaje', 'Editor actualizado correctamente.');
     }
 
+    public function CambiarEstado($id) {
+        $id = Crypt::decrypt($id);
+        $editor = administradores::findOrFail($id);
+        $editor->Activida = !$editor->Activida;
+        $editor->save();
+        $estado = $editor->Activida ? 'activada' : 'desactivada';
+        return redirect()->route('admin.lista')->with('Mensaje', "Cuenta {$estado} correctamente.");
+    }
 }
