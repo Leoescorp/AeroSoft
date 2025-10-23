@@ -74,13 +74,46 @@ class VueloController extends Controller
             'id_td' => 'required|integer',
             'N_Documento' => 'required|string|max:20',
             'Correo' => 'required|email',
+        ], [
+            'id_vuelo.required' => 'El campo vuelo es obligatorio.',
+            'id_vuelo.integer' => 'El campo vuelo debe ser un número entero.',
+            
+            'id_asiento.required' => 'El campo asiento es obligatorio.',
+            'id_asiento.integer' => 'El campo asiento debe ser un número entero.',
+            
+            'Nombres_Cliente.required' => 'Los nombres del cliente son obligatorios.',
+            'Nombres_Cliente.string' => 'Los nombres deben ser texto.',
+            'Nombres_Cliente.max' => 'Los nombres no deben superar los 50 caracteres.',
+            
+            'Primer_Apellido_Cliente.required' => 'El primer apellido es obligatorio.',
+            'Primer_Apellido_Cliente.string' => 'El primer apellido debe ser texto.',
+            'Primer_Apellido_Cliente.max' => 'El primer apellido no debe superar los 50 caracteres.',
+            
+            'Segundo_Apellido_Cliente.required' => 'El segundo apellido es obligatorio.',
+            'Segundo_Apellido_Cliente.string' => 'El segundo apellido debe ser texto.',
+            'Segundo_Apellido_Cliente.max' => 'El segundo apellido no debe superar los 50 caracteres.',
+            
+            'Fecha_Nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
+            'Fecha_Nacimiento.date' => 'La fecha de nacimiento debe tener un formato válido.',
+            
+            'id_genero.required' => 'El género es obligatorio.',
+            'id_genero.integer' => 'El género debe ser un número entero.',
+            
+            'id_td.required' => 'El tipo de documento es obligatorio.',
+            'id_td.integer' => 'El tipo de documento debe ser un número entero.',
+            
+            'N_Documento.required' => 'El número de documento es obligatorio.',
+            'N_Documento.string' => 'El número de documento debe ser texto.',
+            'N_Documento.max' => 'El número de documento no debe superar los 20 caracteres.',
+            
+            'Correo.required' => 'El correo electrónico es obligatorio.',
+            'Correo.email' => 'El correo electrónico debe tener un formato válido.',
         ]);
-
         DB::transaction(function() use ($request) {
             Reserva::create([
                 'id_vuelo' => $request->id_vuelo,
                 'id_asiento' => $request->id_asiento,
-                'Precio_Final' => 0, // Aquí podrías calcular el precio según tipo de tiquete
+                'Precio_Final' => 0,
                 'Nombres_Cliente' => $request->Nombres_Cliente,
                 'Primer_Apellido_Cliente' => $request->Primer_Apellido_Cliente,
                 'Segundo_Apellido_Cliente' => $request->Segundo_Apellido_Cliente,
