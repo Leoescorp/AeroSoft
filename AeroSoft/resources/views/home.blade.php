@@ -24,7 +24,11 @@
     <div class="container">
         <h1 class="fw-bold display-5">Aerolínea <span class="text-primary">AeroSoft</span></h1>
         <p class="text-muted mb-4">Compra a gusto y con cautela</p>
+<<<<<<< HEAD
         <img src="{{ asset('img/avion_1.png') }}" alt="Avión" class="hero-img img-fluid"> 
+=======
+        <img src="{{ asset('img/avion.png') }}" alt="Avión" class="hero-img img-fluid"> 
+>>>>>>> 56cfb12a75e62e35b026f13c945484aa2348e875
     </div>
 </section>
 
