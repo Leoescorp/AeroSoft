@@ -4,17 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seleccionar Asiento - AeroSoft</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
     <style>
         .distribucion-asientos {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
         }
         .zona-asientos {
             margin-bottom: 30px;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 15px;
             background-color: #f8f9fa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .zona-vip {
             border-left: 4px solid #dc3545;
@@ -32,24 +34,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 2px solid #dee2e6;
         }
         .asientos-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
         }
         .asiento {
             text-align: center;
-            padding: 12px;
+            padding: 15px;
             border: 2px solid #dee2e6;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: bold;
+            background-color: white;
         }
         .asiento.disponible {
             background-color: #d4edda;
@@ -59,6 +62,7 @@
         .asiento.disponible:hover {
             background-color: #c3e6cb;
             transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
         .asiento.ocupado {
             background-color: #f8d7da;
@@ -81,32 +85,43 @@
         .leyenda-zonas {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin: 20px 0;
+            gap: 20px;
+            margin: 30px 0;
         }
         .item-leyenda {
-            padding: 10px;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 10px;
             text-align: center;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .leyenda-vip {
-            background-color: #fff5f5;
             border-left: 4px solid #dc3545;
         }
         .leyenda-premium {
-            background-color: #fff9f0;
             border-left: 4px solid #fd7e14;
         }
         .leyenda-basico {
-            background-color: #f0fff4;
             border-left: 4px solid #20c997;
+        }
+        .badge-zona {
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
         }
     </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-success" href="{{ route('vuelos.index') }}">Aero<span class="text-primary">Soft</span></a>
+            <button class="btn btn-outline-light ms-auto px-4">Cerrar sesión</button>
+        </div>
+    </nav>
+
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>💺 Seleccionar Asiento - {{ $tipoTiquete->tipo_tiquete }}</h2>
+            <h2 class="fw-bold">💺 Seleccionar Asiento - {{ $tipoTiquete->tipo_tiquete }}</h2>
             <a href="{{ route('vuelos.seleccionar-tiquete', $vuelo->id_vuelo) }}" class="btn btn-outline-secondary">← Cambiar Tipo de Tiquete</a>
         </div>
 
@@ -117,9 +132,9 @@
             </div>
         @endif
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5>{{ $vuelo->Origen }} → {{ $vuelo->Destino }}</h5>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="text-primary">{{ $vuelo->Origen }} → {{ $vuelo->Destino }}</h5>
                 <p class="mb-1"><strong>Tipo de Tiquete:</strong> {{ $tipoTiquete->tipo_tiquete }}</p>
                 <p class="mb-1"><strong>Precio Final:</strong> ${{ number_format($precioFinal, 0, ',', '.') }}</p>
                 <p class="mb-0"><strong>Zona Permitida:</strong> 
@@ -135,10 +150,11 @@
         </div>
 
         <div class="distribucion-asientos">
+            <!-- Zona VIP -->
             <div class="zona-asientos zona-vip">
                 <div class="header-zona">
                     <h5 class="mb-0">Zona VIP - Adelante</h5>
-                    <span class="badge bg-danger">Filas 1-7</span>
+                    <span class="badge bg-danger badge-zona">Filas 1-7</span>
                 </div>
                 <div class="asientos-container">
                     @foreach($asientos as $asientoVuelo)
@@ -174,10 +190,11 @@
                 </div>
             </div>
 
+            <!-- Zona Premium -->
             <div class="zona-asientos zona-premium">
                 <div class="header-zona">
                     <h5 class="mb-0">Zona Premium - Medio</h5>
-                    <span class="badge bg-warning">Filas 8-15</span>
+                    <span class="badge bg-warning badge-zona">Filas 8-15</span>
                 </div>
                 <div class="asientos-container">
                     @foreach($asientos as $asientoVuelo)
@@ -213,11 +230,11 @@
                 </div>
             </div>
 
-            <!-- Zona Básico (Filas 16-30) -->
+            <!-- Zona Básico -->
             <div class="zona-asientos zona-basico">
                 <div class="header-zona">
                     <h5 class="mb-0">Zona Básico - Atrás</h5>
-                    <span class="badge bg-success">Filas 16-30</span>
+                    <span class="badge bg-success badge-zona">Filas 16-30</span>
                 </div>
                 <div class="asientos-container">
                     @foreach($asientos as $asientoVuelo)
@@ -290,5 +307,12 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 bg-dark text-light mt-5">
+        <p class="mb-0">© 2025 AeroSoft. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

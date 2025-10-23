@@ -10,7 +10,7 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Resultados de Búsqueda</h2>
-            <a href="{{ route('vuelos.index') }}" class="btn btn-outline-primary">← Nueva Búsqueda</a>
+            <a href="{{ route('vuelos.index') }}" class="btn btn-outline-primary">Nueva Búsqueda</a>
         </div>
 
         @if(isset($vuelosEncontrados) && $vuelosEncontrados)
